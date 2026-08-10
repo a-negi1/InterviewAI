@@ -1,7 +1,8 @@
 const Groq = require("groq-sdk");
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-const MODEL = "llama-3.3-70b-versatile";
+
+const MODEL = process.env.GROQ_MODEL || "openai/gpt-oss-120b";
 
 async function generateQuestions({ jobTitle, jobDescription, resumeText, count = 25 }) {
   const prompt = `You are an expert technical interviewer. Generate exactly ${count} interview questions for a ${jobTitle} role.
@@ -33,6 +34,8 @@ Return ONLY a valid JSON array with this structure:
     messages: [{ role: "user", content: prompt }],
     temperature: 0.7,
     max_tokens: 4000,
+
+    reasoning_format: "hidden",
   });
 
   const raw = completion.choices[0].message.content;
@@ -69,6 +72,7 @@ Return ONLY valid JSON:
     messages: [{ role: "user", content: prompt }],
     temperature: 0.3,
     max_tokens: 800,
+    reasoning_format: "hidden",
   });
 
   const raw = completion.choices[0].message.content;
@@ -103,6 +107,7 @@ Return ONLY valid JSON:
     messages: [{ role: "user", content: prompt }],
     temperature: 0.2,
     max_tokens: 1200,
+    reasoning_format: "hidden",
   });
 
   const raw = completion.choices[0].message.content;
@@ -113,10 +118,28 @@ Return ONLY valid JSON:
 }
 
 async function generateReport({ jobTitle, questions, overallScore }) {
-  const qSummary = questions
-    .filter((q) => q.answer)
-    .map((q) => `Q: ${q.text}\nA: ${q.answer}\nScore: ${q.score?.overall || "N/A"}/5`)
-    .join("\n\n");
+
+  const TOTAL_CHAR_BUDGET = 24000;
+  const QUESTION_TEXT_LIMIT = 200; 
+
+  const answeredQs = questions.filter(q => q.answer);
+  const numQs = answeredQs.length || 1;
+
+  
+  const perQBudget  = Math.floor(TOTAL_CHAR_BUDGET / numQs);
+  const answerLimit = Math.max(50, perQBudget - QUESTION_TEXT_LIMIT - 22);
+
+  let totalChars = 0;
+  const summaryLines = [];
+  for (const q of answeredQs) {
+    const qText = (q.text   || "").slice(0, QUESTION_TEXT_LIMIT);
+    const ans   = (q.answer || "").slice(0, answerLimit);
+    const line  = `Q: ${qText}\nA: ${ans}\nScore: ${q.score?.overall || "N/A"}/5`;
+    if (totalChars + line.length > TOTAL_CHAR_BUDGET) break; 
+    summaryLines.push(line);
+    totalChars += line.length;
+  }
+  const qSummary = summaryLines.join("\n\n");
 
   const prompt = `Generate a comprehensive interview performance report for a ${jobTitle} candidate.
 
@@ -138,14 +161,40 @@ Return ONLY valid JSON:
     model: MODEL,
     messages: [{ role: "user", content: prompt }],
     temperature: 0.4,
-    max_tokens: 1000,
+    
+    max_tokens: 1500,
+    reasoning_format: "hidden",
   });
 
-  const raw = completion.choices[0].message.content;
-  const jsonMatch = raw.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) throw new Error("Failed to parse report JSON from Groq");
+  const raw = completion.choices[0].message.content || "";
 
-  return JSON.parse(jsonMatch[0]);
+  
+  const jsonMatch = raw.match(/\{[\s\S]*\}/);
+  if (jsonMatch) {
+    try { return JSON.parse(jsonMatch[0]); } catch (_) 
+  }
+
+
+  console.warn("generateReport: full JSON not found, extracting available fields. finish_reason:",
+    completion.choices[0].finish_reason);
+
+  const extract = (key) => {
+    const m = raw.match(new RegExp(`"${key}"\\s*:\\s*"([^"]+)"`, "i"));
+    return m ? m[1] : "";
+  };
+  const extractArr = (key) => {
+    const m = raw.match(new RegExp(`"${key}"\\s*:\\s*\\[([^\\]]+)\\]`, "i"));
+    if (!m) return [];
+    return m[1].match(/"([^"]+)"/g)?.map(s => s.replace(/"/g, "")) || [];
+  };
+
+  return {
+    summary: extract("summary") || "Report could not be fully generated. Please retry.",
+    strengths: extractArr("strengths"),
+    improvements: extractArr("improvements"),
+    recommendations: extractArr("recommendations"),
+    nextSteps: extract("nextSteps") || "",
+  };
 }
 
 module.exports = { generateQuestions, evaluateAnswer, analyzeResumeJD, generateReport };

@@ -1,5 +1,5 @@
-# AI Mock Interview Agent — System Architecture & Design
-
+# InterviewAI — System Architecture & Design
+>InterviewAI is a full-stack MERN web application that acts as an **AI-powered mock interview coach.** Users can upload their resume, paste a job description, and then get interviewed by it — either by speaking or typing. After finishing, they receive a **detailed report with scores and feedback.**
 ---
 
 ## 📐 High-Level Architecture Overview
@@ -25,7 +25,7 @@ graph TB
         end
 
         subgraph AI_SVC["AI Services"]
-            GROQ["groq.service.js\n(LLaMA 3.3 70B)"]
+            GROQ["groq.service.js\n(gpt-oss-120b)"]
         end
 
         subgraph SCORE_SVC["Scoring Services"]
@@ -34,7 +34,7 @@ graph TB
     end
 
     subgraph EXTERNAL["☁️ External Services"]
-        GROQ_API["Groq Cloud API\nLLaMA-3.3-70b-versatile"]
+        GROQ_API["Groq Cloud API\ngpt-oss-120b"]
         GOOGLE_AUTH["Google OAuth2\nIdentity Platform"]
         MONGO[("MongoDB Atlas\nCloud Database")]
     end
@@ -71,7 +71,7 @@ sequenceDiagram
     actor User
     participant FE as React Frontend
     participant API as Express Backend
-    participant Groq as Groq AI (LLaMA 70B)
+    participant Groq as Groq AI (gpt-oss-120b)
     participant DB as MongoDB
 
     User->>FE: Upload Resume + Enter Job Details
@@ -290,7 +290,7 @@ graph LR
 | **Database** | MongoDB + Mongoose | Document store |
 | **Auth** | JWT + bcryptjs | Token-based auth + password hashing |
 | **Google Auth** | google-auth-library | OAuth2 token verification |
-| **AI** | Groq SDK (LLaMA-3.3-70B) | Question gen, answer eval, report gen |
+| **AI** | Groq SDK (openai/gpt-oss-120b) | Question gen, answer eval, report gen |
 | **Resume Parsing** | pdf-parse + mammoth | Extract text from PDF/DOCX |
 | **File Upload** | Multer | Memory-buffered multipart upload |
 | **Dev Server** | Nodemon | Auto-reload backend |
@@ -370,7 +370,7 @@ ai-mock-interview/
 
 | Decision | Choice | Rationale |
 |---|---|---|
-| **AI Model** | LLaMA-3.3-70B via Groq | Fast inference, free tier, high quality |
+| **AI Model** | gpt-oss-120b via Groq | Fast inference, free tier, high quality |
 | **Scoring** | Hybrid (CosSim + Keyword + LLM + Fluency) | Uses bag-of-words cosine similarity. Resilience if LLM fails; multi-dimensional. |
 | **DB Design** | Questions embedded in Session | Avoids joins; answers are always queried with session |
 | **Auth** | JWT (7d) in localStorage | Stateless, simple; trade-off: no server-side revoke |

@@ -51,6 +51,13 @@ router.post("/report/:sessionId", protect, async (req, res) => {
 
     res.json(report);
   } catch (err) {
+    
+    if (err.status === 413 || err.message?.includes("rate_limit_exceeded")) {
+      return res.status(429).json({
+        message: "Report generation temporarily unavailable: the interview transcript exceeded the free-tier token limit. Please try again in a minute, or upgrade your Groq plan at console.groq.com/settings/billing."
+      });
+    }
+    console.error("[/report/:sessionId] 500 error:", err.message);
     res.status(500).json({ message: err.message });
   }
 });
