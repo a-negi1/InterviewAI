@@ -171,7 +171,7 @@ Return ONLY valid JSON:
   
   const jsonMatch = raw.match(/\{[\s\S]*\}/);
   if (jsonMatch) {
-    try { return JSON.parse(jsonMatch[0]); } catch (_) 
+    try { return JSON.parse(jsonMatch[0]); } catch (_) {}
   }
 
 
