@@ -24,8 +24,8 @@
   --surface-3: rgba(255, 255, 255, 0.18);
 
   --text-1: #16192e;
-  --text-2: rgba(30, 35, 80, 0.70);
-  --text-3: rgba(60, 70, 130, 0.45);
+  --text-2: rgba(30, 35, 80, 0.74);
+  --text-3: rgba(40, 48, 92, 0.65);
 
   --border: rgba(100, 90, 200, 0.14);
   --border-strong: rgba(100, 90, 200, 0.24);
@@ -84,8 +84,8 @@
   --surface-3: rgba(255, 255, 255, 0.03);
 
   --text-1: #eef0ff;
-  --text-2: rgba(210, 215, 255, 0.62);
-  --text-3: rgba(170, 180, 240, 0.38);
+  --text-2: rgba(215, 220, 255, 0.72);
+  --text-3: rgba(185, 195, 245, 0.58);
 
   --border: rgba(255, 255, 255, 0.09);
   --border-strong: rgba(255, 255, 255, 0.16);
@@ -130,9 +130,55 @@ body {
   color: var(--text-1);
   line-height: 1.6;
   min-height: 100vh;
+  min-height: 100dvh;
+  padding-bottom: max(56px, env(safe-area-inset-bottom));
   transition: background 0.4s ease, color 0.4s ease;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+}
+
+
+::selection {
+  background: rgba(99, 102, 241, 0.28);
+  color: inherit;
+}
+
+.dark ::selection {
+  background: rgba(129, 140, 248, 0.38);
+  color: #ffffff;
+}
+
+input,
+textarea {
+  caret-color: var(--brand);
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+.tabular-nums,
+.score-ring,
+.waveform,
+code,
+pre {
+  font-variant-numeric: tabular-nums;
+}
+
+a {
+  text-underline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 
@@ -407,7 +453,7 @@ pre {
   padding: 40px 24px;
 }
 
-/* ── iOS Glass card ── */
+
 .card {
   background: var(--glass-bg);
   backdrop-filter: var(--blur);
@@ -419,15 +465,17 @@ pre {
   transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease, background 0.3s ease;
 }
 
-.card-hover:hover {
+.card-hover:hover,
+.card-hover:focus-visible {
   box-shadow: var(--glass-shadow-hover);
   transform: translateY(-2px);
   border-color: var(--brand-glow);
   background: var(--glass-bg-strong);
 }
 
-/* In dark mode, hover border goes bright white */
-.dark .card-hover:hover {
+
+.dark .card-hover:hover,
+.dark .card-hover:focus-visible {
   border-color: rgba(255, 255, 255, 0.28);
 }
 
@@ -964,7 +1012,7 @@ select option {
   color: var(--green);
 }
 
-/* ── Score ring ── */
+
 .score-ring {
   position: relative;
   display: inline-flex;
@@ -1209,35 +1257,209 @@ select option {
 }
 
 
-@media (max-width: 640px) {
 
+.auth-card {
+  padding: 44px 40px;
+  border-radius: 28px;
+}
+
+.stepper-track {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto 36px auto;
+}
+
+.step-line-bar {
+  flex: 1 1 20px;
+  max-width: 64px;
+  min-width: 14px;
+  height: 1px;
+  background: var(--border);
+  margin: 0 8px;
+  margin-bottom: 22px;
+  transition: background 0.3s ease;
+}
+
+.step-line-bar.done {
+  background: var(--green);
+}
+
+.session-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 18px 24px;
+}
+
+.session-card-main {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+  min-width: 0;
+}
+
+.session-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.interview-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+}
+
+.question-dots-track {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px;
+  flex-wrap: wrap;
+  max-height: 84px;
+  overflow-y: auto;
+}
+
+.interview-nav-actions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.report-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 12px;
+  width: 100%;
+}
+
+.report-q-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  cursor: pointer;
+}
+
+.report-q-score-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+
+@media (max-width: 640px) {
   .page,
+  .page-wide,
   .page-narrow {
-    padding: 20px 16px;
+    padding: 16px 14px 64px 14px;
   }
 
   .card {
-    padding: 20px;
+    padding: 18px 16px;
+    border-radius: var(--radius-md);
+  }
+
+  .auth-card {
+    padding: 28px 18px;
+    border-radius: var(--radius-lg);
   }
 
   .btn-lg {
-    padding: 12px 22px;
+    padding: 12px 20px;
+    font-size: 14px;
   }
 
-  .stepper {
-    gap: 0;
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+    padding: 10px 14px;
   }
 
-  .step-line {
+  .stepper-track {
+    margin-bottom: 24px;
+  }
+
+  .step-line-bar {
     margin: 0 4px;
+    margin-bottom: 20px;
+    min-width: 10px;
+  }
+
+  .step-dot {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+
+  .step-label {
+    font-size: 10.5px;
+  }
+
+  .session-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .session-card-main {
+    width: 100%;
+  }
+
+  .session-card-actions {
+    width: 100%;
+    justify-content: space-between;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+  }
+
+  .report-stat-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .report-q-row {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .report-q-score-box {
+    width: 100%;
+    justify-content: flex-end;
+    margin-top: 4px;
   }
 
   .theme-toggle {
-    bottom: 52px;
-    right: 16px;
-    width: 42px;
-    height: 42px;
-    font-size: 17px;
+    bottom: 48px;
+    right: 14px;
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
     z-index: 1000;
+  }
+}
+
+
+@media (pointer: coarse) {
+  .btn {
+    min-height: 44px;
+  }
+
+  .mode-btn {
+    min-height: 40px;
+  }
+
+  button {
+    touch-action: manipulation;
   }
 }

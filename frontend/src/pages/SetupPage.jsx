@@ -1,6 +1,17 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { resumeAPI, interviewAPI } from "../services/api";
+import {
+  CheckIcon,
+  CheckCircleIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  AlertCircleIcon,
+  CrossIcon,
+  UploadCloudIcon,
+  FileTextIcon,
+  RocketIcon,
+} from "../components/Icons";
 
 const STEPS = ["Resume", "Job details", "Review"];
 
@@ -12,7 +23,7 @@ function StepDot({ index, current }) {
       className={`step-dot ${active ? "active" : done ? "done" : ""}`}
       aria-current={active ? "step" : undefined}
     >
-      {done ? "✓" : index + 1}
+      {done ? <CheckIcon size={14} /> : index + 1}
     </div>
   );
 }
@@ -73,7 +84,11 @@ export default function SetupPage() {
       const res = await interviewAPI.start({ jobTitle, jobDescription, resumeText });
       navigate(`/interview/${res.data.sessionId}`);
     } catch (err) {
-      setError(err.response?.data?.message || "Could not create session. Please try again.");
+      const msg =
+        err.code === "ERR_NETWORK" || !err.response
+          ? "Unable to connect to the backend server. Please make sure the backend is running on port 5000."
+          : err.response?.data?.message || "Could not create session. Please try again.";
+      setError(msg);
       setLoading(false);
     }
   };
@@ -90,48 +105,45 @@ export default function SetupPage() {
           marginBottom: 32, textDecoration: "none",
         }}
       >
-        ← Back to dashboard
+        <ArrowLeftIcon size={14} /> Back to dashboard
       </a>
 
-      {}
-      <div className="stepper" style={{ marginBottom: 40 }}>
+      
+      <div className="stepper-track">
         {STEPS.map((label, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "center" }}>
+          <div key={i} style={{ display: "flex", alignItems: "center", flex: i < STEPS.length - 1 ? 1 : "0 0 auto" }}>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 7 }}>
               <StepDot index={i} current={step} />
-              <span style={{
-                fontSize: 11, fontWeight: 600,
+              <span className="step-label" style={{
+                fontWeight: 600,
                 color: i === step ? "var(--brand)" : i < step ? "var(--green)" : "var(--text-3)",
                 letterSpacing: "0.3px",
+                whiteSpace: "nowrap",
               }}>
                 {label}
               </span>
             </div>
             {i < STEPS.length - 1 && (
-              <div style={{
-                width: 64, height: 1,
-                background: i < step ? "var(--green)" : "var(--border)",
-                margin: "0 8px", marginBottom: 22,
-                transition: "background 0.3s ease",
-              }} />
+              <div className={`step-line-bar ${i < step ? "done" : ""}`} />
             )}
           </div>
         ))}
       </div>
 
-      {}
       {error && (
         <div className="alert alert-danger fade-in" style={{ marginBottom: 20 }}>
-          <span>⚠</span>
+          <AlertCircleIcon size={16} style={{ flexShrink: 0, marginTop: 2 }} />
           <span style={{ flex: 1 }}>{error}</span>
           <button
             onClick={() => setError(null)}
-            style={{ background: "none", border: "none", cursor: "pointer", color: "inherit", fontSize: 16, padding: 0 }}
-          >✕</button>
+            aria-label="Dismiss error"
+            style={{ background: "none", border: "none", cursor: "pointer", color: "inherit", padding: 2, display: "flex", alignItems: "center" }}
+          >
+            <CrossIcon size={14} />
+          </button>
         </div>
       )}
 
-      {}
       {step === 0 && (
         <div className="card fade-up">
           <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 6 }}>Upload your resume</h2>
@@ -139,9 +151,17 @@ export default function SetupPage() {
             PDF, DOCX, or TXT · up to 10 MB
           </p>
 
-          {}
           <div
             onClick={() => !loading && fileRef.current?.click()}
+            role="button"
+            tabIndex={0}
+            aria-label="Upload resume file dropzone"
+            onKeyDown={e => {
+              if ((e.key === "Enter" || e.key === " ") && !loading) {
+                e.preventDefault();
+                fileRef.current?.click();
+              }
+            }}
             onDragOver={e => { e.preventDefault(); setDragOver(true); }}
             onDragLeave={() => setDragOver(false)}
             onDrop={e => {
@@ -173,7 +193,15 @@ export default function SetupPage() {
               </div>
             ) : (
               <>
-                <div style={{ fontSize: 44, marginBottom: 14 }}>📄</div>
+                <div style={{
+                  width: 56, height: 56, borderRadius: 16,
+                  background: "var(--brand-light)",
+                  border: "1px solid var(--glass-border)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  margin: "0 auto 16px"
+                }}>
+                  <UploadCloudIcon size={26} color="var(--brand)" />
+                </div>
                 <p style={{ fontSize: 15, fontWeight: 600, color: "var(--text-1)", marginBottom: 8 }}>
                   Drop your resume here, or click to browse
                 </p>
@@ -194,7 +222,6 @@ export default function SetupPage() {
             onChange={e => handleFile(e.target.files[0])}
           />
 
-          {}
           <div className="divider-text" style={{ marginBottom: 24, fontSize: 13, color: "var(--text-3)" }}>
             or paste text directly
           </div>
@@ -214,15 +241,15 @@ export default function SetupPage() {
             <button
               onClick={() => setStep(1)}
               className="btn btn-primary btn-lg fade-in"
-              style={{ width: "100%" }}
+              style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
             >
-              Continue →
+              <span>Continue</span>
+              <ArrowRightIcon size={16} />
             </button>
           )}
         </div>
       )}
 
-      {}
       {step === 1 && (
         <div className="card fade-up">
           <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 6 }}>Job details</h2>
@@ -230,7 +257,6 @@ export default function SetupPage() {
             Tell us about the role — we'll tailor every question to it.
           </p>
 
-          {}
           {resumeFilename && (
             <div style={{
               display: "inline-flex", alignItems: "center", gap: 8,
@@ -238,15 +264,19 @@ export default function SetupPage() {
               borderRadius: 10, padding: "7px 14px",
               fontSize: 13, fontWeight: 600, marginBottom: 24
             }}>
-              📄 {resumeFilename}
+              <FileTextIcon size={14} />
+              <span>{resumeFilename}</span>
               <button
                 onClick={() => { setStep(0); setResumeFilename(""); setResumeText(""); }}
                 style={{
                   background: "none", border: "none", cursor: "pointer",
-                  color: "inherit", fontSize: 14, padding: 0, lineHeight: 1, marginLeft: 4
+                  color: "inherit", padding: 0, lineHeight: 1, marginLeft: 4, display: "flex", alignItems: "center"
                 }}
                 title="Change resume"
-              >✕</button>
+                aria-label="Remove uploaded resume"
+              >
+                <CrossIcon size={13} />
+              </button>
             </div>
           )}
 
@@ -277,14 +307,15 @@ export default function SetupPage() {
           </div>
 
           <div style={{ display: "flex", gap: 12 }}>
-            <button onClick={() => setStep(0)} className="btn btn-secondary" style={{ flex: "0 0 auto" }}>
-              ← Back
+            <button onClick={() => setStep(0)} className="btn btn-secondary" style={{ flex: "0 0 auto", display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <ArrowLeftIcon size={15} />
+              <span>Back</span>
             </button>
             <button
               onClick={analyzeAndReview}
               disabled={loading || !jobTitle.trim()}
               className="btn btn-primary"
-              style={{ flex: 1 }}
+              style={{ flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}
             >
               {loading ? (
                 <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -295,13 +326,17 @@ export default function SetupPage() {
                   }} />
                   Analysing…
                 </span>
-              ) : "Review & start →"}
+              ) : (
+                <>
+                  <span>Review & start</span>
+                  <ArrowRightIcon size={16} />
+                </>
+              )}
             </button>
           </div>
         </div>
       )}
 
-      {}
       {step === 2 && (
         <div className="card fade-up">
           <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 6 }}>Ready to start</h2>
@@ -309,10 +344,9 @@ export default function SetupPage() {
             Review your setup, then launch the interview.
           </p>
 
-          {}
           <div style={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr",
+            gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
             gap: 10, marginBottom: 24
           }}>
             {[
@@ -329,34 +363,33 @@ export default function SetupPage() {
                 <div style={{ fontSize: 11, color: "var(--text-3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 5 }}>
                   {label}
                 </div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-1)" }}>{value}</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-1)", wordBreak: "break-word" }}>{value}</div>
               </div>
             ))}
           </div>
 
-          {}
           {analysis?.analysis && (
             <div className="fade-in" style={{
               background: "var(--green-bg)",
               border: "1px solid var(--green-border)",
-              borderRadius: 16, padding: 22, marginBottom: 24
+              borderRadius: 16, padding: "20px 18px", marginBottom: 24
             }}>
               <div style={{
                 display: "flex", alignItems: "center", justifyContent: "space-between",
                 marginBottom: 16
               }}>
-                <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--green-text)" }}>
-                  ✅ AI Match
-                  <span style={{ fontWeight: 500, opacity: 0.75, marginLeft: 6 }}>(semantic)</span>
+                <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--green-text)", display: "flex", alignItems: "center", gap: 6 }}>
+                  <CheckCircleIcon size={16} color="var(--green)" />
+                  <span>AI Match</span>
+                  <span style={{ fontWeight: 500, opacity: 0.75 }}>(semantic)</span>
                 </h3>
-                <span style={{
+                <span className="tabular-nums" style={{
                   fontWeight: 800, fontSize: 20, color: "var(--green)",
                 }}>
                   {analysis.analysis.matchScore}%
                 </span>
               </div>
 
-              {}
               <div className="progress" style={{ marginBottom: 18 }}>
                 <div
                   className="progress-fill progress-fill-green"
@@ -364,8 +397,7 @@ export default function SetupPage() {
                 />
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                {}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 16 }}>
                 <div>
                   <p style={{ fontSize: 12, fontWeight: 700, color: "var(--green-text)", marginBottom: 8 }}>
                     Matched skills
@@ -376,7 +408,6 @@ export default function SetupPage() {
                     ))}
                   </div>
                 </div>
-                {}
                 <div>
                   <p style={{ fontSize: 12, fontWeight: 700, color: "var(--amber-text)", marginBottom: 8 }}>
                     Missing skills
@@ -391,16 +422,16 @@ export default function SetupPage() {
             </div>
           )}
 
-          {}
           <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
-            <button onClick={() => setStep(1)} className="btn btn-secondary" style={{ flex: "0 0 auto" }}>
-              ← Edit
+            <button onClick={() => setStep(1)} className="btn btn-secondary" style={{ flex: "0 0 auto", display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <ArrowLeftIcon size={15} />
+              <span>Edit</span>
             </button>
             <button
               onClick={startInterview}
               disabled={loading}
               className="btn btn-success btn-lg"
-              style={{ flex: 1 }}
+              style={{ flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}
             >
               {loading ? (
                 <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -411,7 +442,12 @@ export default function SetupPage() {
                   }} />
                   Creating session…
                 </span>
-              ) : "🚀 Start interview"}
+              ) : (
+                <>
+                  <RocketIcon size={18} />
+                  <span>Start interview</span>
+                </>
+              )}
             </button>
           </div>
         </div>

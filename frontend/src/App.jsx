@@ -7,6 +7,16 @@ import SetupPage from "./pages/SetupPage";
 import InterviewPage from "./pages/InterviewPage";
 import ReportPage from "./pages/ReportPage";
 import { interviewAPI } from "./services/api";
+import {
+  MicIcon,
+  CheckCircleIcon,
+  ChartBarIcon,
+  AlertCircleIcon,
+  PlusIcon,
+  SignOutIcon,
+  ArrowRightIcon,
+  SparklesIcon,
+} from "./components/Icons";
 
 function MeshBackground() {
   return (
@@ -75,10 +85,10 @@ function LoginPage() {
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      padding: "24px",
+      padding: "16px",
     }}>
       <div style={{ width: "100%", maxWidth: 460 }}>
-        <div className="card card-glass-strong fade-up" style={{ padding: "44px 40px", borderRadius: 28 }}>
+        <div className="card card-glass-strong auth-card fade-up">
           <div style={{ textAlign: "center", marginBottom: 32 }}>
             <div style={{
               width: 52, height: 52, background: "var(--brand)", borderRadius: 16,
@@ -100,7 +110,8 @@ function LoginPage() {
 
           {error && (
             <div className="alert alert-danger fade-in" style={{ marginBottom: 20 }}>
-              <span>⚠</span> {error}
+              <AlertCircleIcon size={16} style={{ flexShrink: 0, marginTop: 2 }} />
+              <span style={{ flex: 1 }}>{error}</span>
             </div>
           )}
 
@@ -112,7 +123,9 @@ function LoginPage() {
                   placeholder="Alex Johnson"
                   value={form.name}
                   onChange={e => setForm({ ...form, name: e.target.value })}
-                  required autoFocus={mode === "register"}
+                  required
+                  autoComplete="name"
+                  autoFocus={mode === "register"}
                 />
               </div>
             )}
@@ -123,7 +136,9 @@ function LoginPage() {
                 placeholder="you@example.com"
                 value={form.email}
                 onChange={e => setForm({ ...form, email: e.target.value })}
-                required autoFocus={mode === "login"}
+                required
+                autoComplete="email"
+                autoFocus={mode === "login"}
               />
             </div>
             <div className="field">
@@ -133,7 +148,9 @@ function LoginPage() {
                 placeholder="Min. 6 characters"
                 value={form.password}
                 onChange={e => setForm({ ...form, password: e.target.value })}
-                required minLength={6}
+                required
+                minLength={6}
+                autoComplete={mode === "login" ? "current-password" : "new-password"}
               />
             </div>
 
@@ -154,7 +171,10 @@ function LoginPage() {
                   {mode === "login" ? "Signing in…" : "Creating account…"}
                 </span>
               ) : (
-                mode === "login" ? "Sign in →" : "Create account →"
+                <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                  <span>{mode === "login" ? "Sign in" : "Create account"}</span>
+                  <ArrowRightIcon size={16} />
+                </span>
               )}
             </button>
           </form>
@@ -216,59 +236,66 @@ function SessionCard({ session, onView }) {
       : score >= 3 ? "var(--amber)"
         : "var(--red)";
 
+  const isCompleted = session.status === "completed";
+
   return (
     <div
-      className="card card-hover"
-      style={{
-        display: "flex", alignItems: "center",
-        gap: 20, padding: "18px 24px", cursor: "default"
-      }}
+      className={`card session-card ${isCompleted ? "card-hover" : ""}`}
+      onClick={isCompleted ? onView : undefined}
+      role={isCompleted ? "button" : undefined}
+      tabIndex={isCompleted ? 0 : undefined}
+      onKeyDown={isCompleted ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onView(); } } : undefined}
+      style={{ cursor: isCompleted ? "pointer" : "default" }}
     >
-      { }
-      <div style={{
-        flexShrink: 0, width: 52, height: 52, borderRadius: "50%",
-        border: `2.5px solid ${scoreColor}`,
-        display: "flex", flexDirection: "column",
-        alignItems: "center", justifyContent: "center",
-        background: "var(--surface-2)",
-      }}>
-        {score ? (
-          <>
-            <span style={{ fontSize: 15, fontWeight: 800, color: scoreColor, lineHeight: 1 }}>
-              {score.toFixed(1)}
-            </span>
-            <span style={{ fontSize: 9, color: "var(--text-3)", fontWeight: 600 }}>/5</span>
-          </>
-        ) : <span style={{ fontSize: 18, color: "var(--text-3)" }}>—</span>}
-      </div>
-
-      { }
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4, color: "var(--text-1)" }}>
-          {session.jobTitle}
-        </div>
-        <div style={{ fontSize: 13, color: "var(--text-2)" }}>
-          {new Date(session.createdAt).toLocaleDateString("en-US", {
-            month: "short", day: "numeric", year: "numeric"
-          })}
-          <span style={{ margin: "0 8px", color: "var(--border-strong)" }}>·</span>
-          {session.questions?.length || 0} questions
-          {session.totalDuration && (
+      <div className="session-card-main">
+        <div style={{
+          flexShrink: 0, width: 50, height: 50, borderRadius: "50%",
+          border: `2px solid ${scoreColor}`,
+          display: "flex", flexDirection: "column",
+          alignItems: "center", justifyContent: "center",
+          background: "var(--surface-2)",
+        }}>
+          {score ? (
             <>
-              <span style={{ margin: "0 8px", color: "var(--border-strong)" }}>·</span>
-              {Math.floor(session.totalDuration / 60)}m
+              <span className="tabular-nums" style={{ fontSize: 15, fontWeight: 800, color: scoreColor, lineHeight: 1 }}>
+                {score.toFixed(1)}
+              </span>
+              <span style={{ fontSize: 9, color: "var(--text-3)", fontWeight: 600 }}>/5</span>
             </>
-          )}
+          ) : <span style={{ fontSize: 18, color: "var(--text-3)" }}>—</span>}
+        </div>
+
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4, color: "var(--text-1)", wordBreak: "break-word" }}>
+            {session.jobTitle}
+          </div>
+          <div style={{ fontSize: 13, color: "var(--text-2)", display: "flex", flexWrap: "wrap", alignItems: "center" }}>
+            <span>
+              {new Date(session.createdAt).toLocaleDateString("en-US", {
+                month: "short", day: "numeric", year: "numeric"
+              })}
+            </span>
+            <span style={{ margin: "0 6px", color: "var(--border-strong)" }}>·</span>
+            <span>{session.questions?.length || 0} questions</span>
+            {session.totalDuration && (
+              <>
+                <span style={{ margin: "0 6px", color: "var(--border-strong)" }}>·</span>
+                <span className="tabular-nums">{Math.floor(session.totalDuration / 60)}m</span>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
-      { }
-      <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
-        <span className={`badge ${session.status === "completed" ? "badge-green" : "badge-amber"}`}>
-          {session.status === "completed" ? "Completed" : "Incomplete"}
+      <div className="session-card-actions">
+        <span className={`badge ${isCompleted ? "badge-green" : "badge-amber"}`}>
+          {isCompleted ? "Completed" : "Incomplete"}
         </span>
-        {session.status === "completed" && (
-          <button onClick={onView} className="btn btn-secondary btn-sm">
+        {isCompleted && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onView(); }}
+            className="btn btn-secondary btn-sm"
+          >
             View report
           </button>
         )}
@@ -297,89 +324,85 @@ function DashboardPage() {
 
   return (
     <div className="page fade-up">
-      { }
       <div style={{
         display: "flex", justifyContent: "space-between",
         alignItems: "flex-start", marginBottom: 36, flexWrap: "wrap", gap: 16
       }}>
         <div>
-          <p style={{ fontSize: 13, color: "var(--text-3)", fontWeight: 600, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>
-            Dashboard
-          </p>
-          <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 4 }}>
-            Hey, {user?.name?.split(" ")[0] || "there"} 👋
+          <h1 style={{ fontSize: "clamp(22px, 5vw, 28px)", fontWeight: 800, marginBottom: 6 }}>
+            Welcome back, {user?.name?.split(" ")[0] || "there"}
           </h1>
           <p style={{ color: "var(--text-2)", fontSize: 15 }}>
             Ready for your next practice session?
           </p>
         </div>
-        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          <button onClick={logout} className="btn btn-ghost btn-sm">
+        <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+          <button onClick={logout} className="btn btn-ghost btn-sm" aria-label="Sign out">
+            <SignOutIcon size={15} />
             Sign out
           </button>
           <button onClick={() => navigate("/setup")} className="btn btn-primary">
-            + New interview
+            <PlusIcon size={15} />
+            New interview
           </button>
         </div>
       </div>
 
-      { }
       <div style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-        gap: 16, marginBottom: 36
+        gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
+        gap: 14, marginBottom: 36
       }}>
         {[
           {
-            label: "Interviews done",
+            label: "Interviews practiced",
             value: sessions.length,
-            icon: "🎤",
+            Icon: MicIcon,
             color: "var(--brand)",
             bg: "var(--brand-light)"
           },
           {
-            label: "Completed",
+            label: "Completed sessions",
             value: completed.length,
-            icon: "✅",
+            Icon: CheckCircleIcon,
             color: "var(--green)",
             bg: "var(--green-bg)"
           },
           {
-            label: "Avg. score",
-            value: avgScore ? `${avgScore}/5` : "—",
-            icon: "📊",
+            label: "Average score",
+            value: avgScore ? `${avgScore} / 5.0` : "—",
+            Icon: ChartBarIcon,
             color: "var(--amber)",
             bg: "var(--amber-bg)"
           },
         ].map((stat) => (
-          <div key={stat.label} className="card card-hover" style={{ padding: "22px 24px" }}>
+          <div key={stat.label} className="card card-hover" style={{ padding: "clamp(16px, 3.5vw, 22px) clamp(14px, 4vw, 24px)" }}>
             <div style={{
               width: 40, height: 40, borderRadius: 12,
               background: stat.bg,
               border: `1px solid ${stat.color}33`,
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 19, marginBottom: 14,
+              marginBottom: 14,
               boxShadow: `0 4px 12px ${stat.color}22`,
             }}>
-              {stat.icon}
+              <stat.Icon size={20} color={stat.color} />
             </div>
-            <div style={{ fontSize: 28, fontWeight: 800, color: stat.color, marginBottom: 4, lineHeight: 1 }}>
+            <div className="tabular-nums" style={{ fontSize: 26, fontWeight: 800, color: stat.color, marginBottom: 4, lineHeight: 1 }}>
               {stat.value}
             </div>
-            <div style={{ fontSize: 13, color: "var(--text-2)", fontWeight: 500, marginTop: 4 }}>
+            <div style={{ fontSize: 13, color: "var(--text-2)", fontWeight: 500, marginTop: 6 }}>
               {stat.label}
             </div>
           </div>
         ))}
       </div>
 
-      { }
       <div style={{
         display: "flex", justifyContent: "space-between",
         alignItems: "center", marginBottom: 16
       }}>
-        <h2 style={{ fontSize: 17, fontWeight: 700 }}>Past interviews</h2>
-        <span style={{ fontSize: 13, color: "var(--text-3)" }}>
+        <h2 style={{ fontSize: 18, fontWeight: 700 }}>Past interviews</h2>
+        <span className="tabular-nums" style={{ fontSize: 13, color: "var(--text-3)", fontWeight: 500 }}>
           {sessions.length} total
         </span>
       </div>
@@ -392,17 +415,26 @@ function DashboardPage() {
         </div>
       ) : sessions.length === 0 ? (
         <div className="card" style={{
-          textAlign: "center", padding: "64px 24px",
-          background: "var(--surface-2)", border: "2px dashed var(--border-strong)"
+          textAlign: "center", padding: "clamp(36px, 8vw, 64px) clamp(16px, 4vw, 24px)",
+          background: "var(--surface-2)", border: "1px dashed var(--border-strong)"
         }}>
-          <div style={{ fontSize: 52, marginBottom: 16 }}>🎙</div>
-          <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>
-            No interviews yet
+          <div style={{
+            width: 64, height: 64, borderRadius: 20,
+            background: "var(--brand-light)",
+            border: "1px solid var(--glass-border)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            margin: "0 auto 20px"
+          }}>
+            <SparklesIcon size={28} color="var(--brand)" />
+          </div>
+          <h3 style={{ fontSize: 19, fontWeight: 700, marginBottom: 8 }}>
+            No interview sessions yet
           </h3>
-          <p style={{ color: "var(--text-2)", marginBottom: 24, fontSize: 15 }}>
-            Start your first AI mock interview to get personalised feedback
+          <p style={{ color: "var(--text-2)", marginBottom: 24, fontSize: 15, maxWidth: 420, margin: "0 auto 24px" }}>
+            Start your first AI mock interview to receive role-tailored questions, real-time evaluation, and granular feedback.
           </p>
           <button onClick={() => navigate("/setup")} className="btn btn-primary btn-lg">
+            <PlusIcon size={18} />
             Start first interview
           </button>
         </div>
@@ -423,7 +455,7 @@ function DashboardPage() {
 
 export default function App() {
   return (
-    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || "placeholder.apps.googleusercontent.com"}>
       <ThemeProvider>
         <AuthProvider>
           <BrowserRouter>

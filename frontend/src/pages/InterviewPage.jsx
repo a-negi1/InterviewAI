@@ -1,13 +1,26 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { interviewAPI } from "../services/api";
+import {
+  MicIcon,
+  TextIcon,
+  CheckIcon,
+  CheckCircleIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  AlertCircleIcon,
+  CrossIcon,
+  VolumeIcon,
+  StopIcon,
+  RefreshIcon,
+} from "../components/Icons";
 
 const MODES = { TEXT: "text", VOICE: "voice" };
 
 function categoryMeta(cat) {
   const map = {
     technical: { label: "Technical", color: "var(--brand)", bg: "var(--brand-light)" },
-    behavioral: { label: "Behavioral", color: "#9d174d", bg: "rgba(157,23,77,0.1)" },
+    behavioral: { label: "Behavioral", color: "#a855f7", bg: "rgba(168, 85, 247, 0.12)" },
     situational: { label: "Situational", color: "var(--green)", bg: "var(--green-bg)" },
   };
   return map[cat] || { label: cat, color: "var(--text-2)", bg: "var(--surface-3)" };
@@ -29,7 +42,10 @@ function ScoreBar({ score }) {
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
         <span style={{ fontSize: 13, color: "var(--text-2)", fontWeight: 500 }}>Answer score</span>
-        <span style={{ fontSize: 22, fontWeight: 800, color }}>{score.toFixed(1)}<span style={{ fontSize: 14, color: "var(--text-3)", fontWeight: 400 }}>/5</span></span>
+        <span className="tabular-nums" style={{ fontSize: 22, fontWeight: 800, color }}>
+          {score.toFixed(1)}
+          <span style={{ fontSize: 14, color: "var(--text-3)", fontWeight: 400, marginLeft: 2 }}>/ 5.0</span>
+        </span>
       </div>
       <div className="progress" style={{ height: 8 }}>
         <div
@@ -254,7 +270,13 @@ export default function InterviewPage() {
       display: "flex", flexDirection: "column", alignItems: "center",
       justifyContent: "center", height: "60vh", gap: 16
     }}>
-      <span style={{ fontSize: 48 }}>😕</span>
+      <div style={{
+        width: 56, height: 56, borderRadius: 16,
+        background: "var(--amber-bg)", border: "1px solid var(--amber-border)",
+        display: "flex", alignItems: "center", justifyContent: "center"
+      }}>
+        <AlertCircleIcon size={28} color="var(--amber)" />
+      </div>
       <p style={{ color: "var(--text-2)", fontSize: 16 }}>{error}</p>
       <button onClick={() => navigate("/dashboard")} className="btn btn-primary">
         Back to dashboard
@@ -269,23 +291,21 @@ export default function InterviewPage() {
 
   return (
     <div className="page fade-up" style={{ maxWidth: 860 }}>
-
-      { }
       <div style={{
         display: "flex", justifyContent: "space-between",
         alignItems: "center", marginBottom: 20, flexWrap: "wrap", gap: 12
       }}>
         <div>
           <h2 style={{ fontSize: 20, fontWeight: 800, marginBottom: 3 }}>{session.jobTitle}</h2>
-          <div style={{ display: "flex", align: "center", gap: 14, fontSize: 13, color: "var(--text-2)" }}>
-            <span>Q{currentIdx + 1} of {session.questions.length}</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 14, fontSize: 13, color: "var(--text-2)" }}>
+            <span className="tabular-nums">Q{currentIdx + 1} of {session.questions.length}</span>
             <span style={{ color: "var(--border-strong)" }}>·</span>
-            <span>{answeredCount} answered</span>
+            <span className="tabular-nums">{answeredCount} answered</span>
             {answeredCount > 0 && (
               <>
                 <span style={{ color: "var(--border-strong)" }}>·</span>
-                <span style={{ color: "var(--green)", fontWeight: 600 }}>
-                  avg {(Object.values(scores).reduce((s, sc) => s + Number(sc.overall), 0) / answeredCount).toFixed(1)}/5
+                <span className="tabular-nums" style={{ color: "var(--green)", fontWeight: 600 }}>
+                  avg {(Object.values(scores).reduce((s, sc) => s + Number(sc.overall), 0) / answeredCount).toFixed(1)} / 5.0
                 </span>
               </>
             )}
@@ -300,27 +320,26 @@ export default function InterviewPage() {
         </button>
       </div>
 
-      { }
       <div className="progress" style={{ marginBottom: 28 }}>
         <div className="progress-fill" style={{ width: `${progress}%` }} />
       </div>
 
-      { }
       {error && (
         <div className="alert alert-danger fade-in" style={{ marginBottom: 20 }}>
-          <span>⚠</span>
+          <AlertCircleIcon size={16} style={{ flexShrink: 0, marginTop: 2 }} />
           <span style={{ flex: 1 }}>{error}</span>
           <button
             onClick={() => setError(null)}
-            style={{ background: "none", border: "none", cursor: "pointer", color: "inherit", fontSize: 16 }}
-          >✕</button>
+            aria-label="Dismiss error"
+            style={{ background: "none", border: "none", cursor: "pointer", color: "inherit", padding: 2, display: "flex", alignItems: "center" }}
+          >
+            <CrossIcon size={14} />
+          </button>
         </div>
       )}
 
-      { }
-      <div className="card" style={{ marginBottom: 20, padding: "28px 32px" }}>
-        { }
-        <div style={{ display: "flex", gap: 8, marginBottom: 18, alignItems: "center" }}>
+      <div className="card" style={{ marginBottom: 20, padding: "clamp(18px, 4vw, 28px)" }}>
+        <div style={{ display: "flex", gap: 8, marginBottom: 18, alignItems: "center", flexWrap: "wrap" }}>
           <span style={{
             padding: "4px 12px", borderRadius: 999,
             fontSize: 11, fontWeight: 700, letterSpacing: "0.5px", textTransform: "uppercase",
@@ -336,71 +355,81 @@ export default function InterviewPage() {
             {currentQ?.difficulty}
           </span>
           {scored && (
-            <span style={{ marginLeft: "auto" }} className="badge badge-green">
-              ✓ Answered · {scored.overall.toFixed(1)}/5
+            <span style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 5 }} className="badge badge-green tabular-nums">
+              <CheckIcon size={12} />
+              <span>Answered · {scored.overall.toFixed(1)} / 5.0</span>
             </span>
           )}
         </div>
 
-        { }
         <p style={{
-          fontSize: 19, fontWeight: 600, lineHeight: 1.6,
+          fontSize: "clamp(16px, 4vw, 19px)", fontWeight: 600, lineHeight: 1.6,
           color: "var(--text-1)", marginBottom: 22
         }}>
           {currentQ?.text}
         </p>
 
-        { }
         <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
           <button
             onClick={ttsPlaying ? stopTTS : playQuestion}
             className="btn btn-ghost btn-sm"
-            style={{ fontSize: 13 }}
+            style={{ fontSize: 13, display: "inline-flex", alignItems: "center", gap: 6 }}
           >
-            {ttsPlaying ? "⏹ Stop" : "🔊 Listen"}
+            {ttsPlaying ? (
+              <>
+                <StopIcon size={14} />
+                <span>Stop</span>
+              </>
+            ) : (
+              <>
+                <VolumeIcon size={14} />
+                <span>Listen</span>
+              </>
+            )}
           </button>
           {!speechSupported && (
-            <span style={{ fontSize: 12, color: "var(--amber)", fontWeight: 500 }}>
-              ⚠ Voice not supported — use text mode
+            <span style={{ fontSize: 12, color: "var(--amber)", fontWeight: 500, display: "inline-flex", alignItems: "center", gap: 4 }}>
+              <AlertCircleIcon size={14} />
+              <span>Voice not supported in this browser — use text mode</span>
             </span>
           )}
         </div>
       </div>
 
-      { }
       <div className="mode-toggle" style={{ marginBottom: 20 }}>
         <button
           className={`mode-btn ${mode === MODES.VOICE ? "active" : ""}`}
           onClick={() => { setMode(MODES.VOICE); resetRecording(); }}
+          style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}
         >
-          🎤 Voice mode
+          <MicIcon size={15} />
+          <span>Voice mode</span>
         </button>
         <button
           className={`mode-btn ${mode === MODES.TEXT ? "active" : ""}`}
           onClick={() => { setMode(MODES.TEXT); stopRecording(); }}
+          style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}
         >
-          ✏️ Text mode
+          <TextIcon size={15} />
+          <span>Text mode</span>
         </button>
       </div>
 
-      { }
       {mode === MODES.VOICE && (
         <div className="card fade-in" style={{
-          marginBottom: 20, padding: "32px",
+          marginBottom: 20, padding: "clamp(20px, 4vw, 32px)",
           background: "var(--surface-2)",
           border: "1px solid var(--border)",
         }}>
-
-          { }
           {!isRecording && !hasTranscript && (
             <div style={{ textAlign: "center", padding: "8px 0" }}>
               <div style={{
                 width: 80, height: 80, borderRadius: "50%",
                 background: "var(--brand-light)", border: "2px solid var(--brand-glow)",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 32, margin: "0 auto 20px",
+                margin: "0 auto 20px",
               }}>
-                🎙
+                <MicIcon size={34} color="var(--brand)" />
               </div>
               <p style={{ color: "var(--text-2)", fontSize: 15, marginBottom: 20 }}>
                 {speechSupported
@@ -484,14 +513,18 @@ export default function InterviewPage() {
               )}
 
               <div style={{ display: "flex", justifyContent: "center" }}>
-                <button onClick={stopRecording} className="btn btn-danger" style={{ minWidth: 160 }}>
-                  ⏹ Stop recording
+                <button
+                  onClick={stopRecording}
+                  className="btn btn-danger"
+                  style={{ minWidth: 160, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+                >
+                  <StopIcon size={15} color="white" />
+                  <span>Stop recording</span>
                 </button>
               </div>
             </div>
           )}
 
-          { }
           {!isRecording && hasTranscript && (
             <div className="fade-in">
               <div style={{
@@ -504,7 +537,7 @@ export default function InterviewPage() {
                   Your transcript
                 </span>
                 <div className="divider" style={{ flex: 1 }} />
-                <span style={{ fontSize: 12, color: "var(--text-3)" }}>
+                <span className="tabular-nums" style={{ fontSize: 12, color: "var(--text-3)" }}>
                   {formatDuration(recordDuration)}
                 </span>
               </div>
@@ -530,7 +563,7 @@ export default function InterviewPage() {
                   onClick={submitVoice}
                   disabled={submitting}
                   className="btn btn-success"
-                  style={{ flex: 1 }}
+                  style={{ flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}
                 >
                   {submitting ? (
                     <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -541,10 +574,20 @@ export default function InterviewPage() {
                       }} />
                       Scoring…
                     </span>
-                  ) : "✅ Submit answer"}
+                  ) : (
+                    <>
+                      <CheckCircleIcon size={16} />
+                      <span>Submit answer</span>
+                    </>
+                  )}
                 </button>
-                <button onClick={resetRecording} className="btn btn-secondary">
-                  🔄 Re-record
+                <button
+                  onClick={resetRecording}
+                  className="btn btn-secondary"
+                  style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+                >
+                  <RefreshIcon size={15} />
+                  <span>Re-record</span>
                 </button>
               </div>
             </div>
@@ -552,7 +595,6 @@ export default function InterviewPage() {
         </div>
       )}
 
-      { }
       {mode === MODES.TEXT && (
         <div className="fade-in" style={{ marginBottom: 20 }}>
           <textarea
@@ -563,7 +605,7 @@ export default function InterviewPage() {
             style={{ marginBottom: 12, fontSize: 15, lineHeight: 1.7 }}
           />
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <span style={{ fontSize: 12, color: "var(--text-3)" }}>
+            <span className="tabular-nums" style={{ fontSize: 12, color: "var(--text-3)" }}>
               {textAnswer.trim().split(/\s+/).filter(Boolean).length} words
             </span>
             <span style={{ fontSize: 12, color: "var(--text-3)" }}>
@@ -574,7 +616,7 @@ export default function InterviewPage() {
             onClick={submitText}
             disabled={submitting || !textAnswer.trim()}
             className="btn btn-success btn-lg"
-            style={{ width: "100%" }}
+            style={{ width: "100%", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}
           >
             {submitting ? (
               <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -585,25 +627,27 @@ export default function InterviewPage() {
                 }} />
                 Scoring answer…
               </span>
-            ) : "Submit answer"}
+            ) : (
+              <>
+                <CheckCircleIcon size={16} />
+                <span>Submit answer</span>
+              </>
+            )}
           </button>
         </div>
       )}
 
-      { }
       {scored && (
         <div
           className="card fade-in"
           style={{
-            marginBottom: 20, padding: "24px 28px",
+            marginBottom: 20, padding: "clamp(16px, 3.5vw, 24px) clamp(16px, 4vw, 28px)",
             background: "var(--green-bg)",
             border: "1px solid var(--green-border)",
           }}
         >
-          { }
           <ScoreBar score={scored.overall} />
 
-          { }
           <p style={{
             fontSize: 14, lineHeight: 1.7,
             color: "var(--green-text)", margin: "14px 0 16px",
@@ -612,10 +656,9 @@ export default function InterviewPage() {
             {scored.feedback}
           </p>
 
-          { }
           <div style={{
-            display: "grid", gridTemplateColumns: "repeat(3, 1fr)",
-            gap: 10,
+            display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(75px, 1fr))",
+            gap: 8,
           }}>
             {[
               { label: "BERT", val: scored.bert },
@@ -623,24 +666,25 @@ export default function InterviewPage() {
               { label: "LLM", val: scored.llm },
             ].map(({ label, val }) => (
               <div key={label} style={{
-                background: "rgba(255,255,255,0.5)",
-                borderRadius: 10, padding: "10px 14px",
+                background: "var(--glass-bg-strong)",
+                border: "1px solid var(--glass-border-soft)",
+                backdropFilter: "var(--blur-light)",
+                borderRadius: 10, padding: "10px 12px",
                 textAlign: "center",
               }}>
-                <div style={{ fontSize: 18, fontWeight: 800, color: "var(--green)", marginBottom: 2 }}>
+                <div className="tabular-nums" style={{ fontSize: 18, fontWeight: 800, color: "var(--green)", marginBottom: 2 }}>
                   {val?.toFixed(1) ?? "—"}
                 </div>
-                <div style={{ fontSize: 11, fontWeight: 600, color: "var(--green-text)", opacity: 0.7, textTransform: "uppercase", letterSpacing: "0.4px" }}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: "var(--green-text)", opacity: 0.8, textTransform: "uppercase", letterSpacing: "0.4px" }}>
                   {label}
                 </div>
               </div>
             ))}
           </div>
 
-          { }
           {scored.improvements?.length > 0 && (
             <div style={{ marginTop: 14, paddingTop: 14, borderTop: "1px solid var(--green-border)" }}>
-              <p style={{ fontSize: 12, fontWeight: 700, color: "var(--green-text)", marginBottom: 6, opacity: 0.8 }}>
+              <p style={{ fontSize: 12, fontWeight: 700, color: "var(--green-text)", marginBottom: 6, opacity: 0.85 }}>
                 TO IMPROVE:
               </p>
               <ul style={{ paddingLeft: 18, margin: 0 }}>
@@ -653,25 +697,8 @@ export default function InterviewPage() {
         </div>
       )}
 
-      { }
-      <div style={{
-        display: "flex", gap: 12,
-        borderTop: "1px solid var(--border)", paddingTop: 20
-      }}>
-        <button
-          onClick={() => goTo(currentIdx - 1)}
-          disabled={currentIdx === 0}
-          className="btn btn-secondary"
-          style={{ flex: 1 }}
-        >
-          ← Previous
-        </button>
-
-        { }
-        <div style={{
-          display: "flex", alignItems: "center", gap: 5,
-          padding: "0 8px", flexWrap: "wrap", justifyContent: "center"
-        }}>
+      <div className="interview-nav">
+        <div className="question-dots-track" aria-label="Question selector">
           {session.questions.map((q, i) => {
             const hasScore = !!scores[q.id];
             const isCurrent = i === currentIdx;
@@ -680,6 +707,7 @@ export default function InterviewPage() {
                 key={i}
                 onClick={() => goTo(i)}
                 title={`Question ${i + 1}`}
+                aria-label={`Question ${i + 1}${hasScore ? " (answered)" : ""}`}
                 style={{
                   width: isCurrent ? 24 : 10,
                   height: 10,
@@ -696,15 +724,42 @@ export default function InterviewPage() {
           })}
         </div>
 
-        {!isLast ? (
-          <button onClick={() => goTo(currentIdx + 1)} className="btn btn-primary" style={{ flex: 1 }}>
-            Next →
+        <div className="interview-nav-actions">
+          <button
+            onClick={() => goTo(currentIdx - 1)}
+            disabled={currentIdx === 0}
+            className="btn btn-secondary"
+            style={{ flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+          >
+            <ArrowLeftIcon size={15} />
+            <span>Previous</span>
           </button>
-        ) : (
-          <button onClick={endInterview} disabled={ending} className="btn btn-success" style={{ flex: 1 }}>
-            {ending ? "Finishing…" : "Finish 🎉"}
-          </button>
-        )}
+
+          {!isLast ? (
+            <button
+              onClick={() => goTo(currentIdx + 1)}
+              className="btn btn-primary"
+              style={{ flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+            >
+              <span>Next</span>
+              <ArrowRightIcon size={15} />
+            </button>
+          ) : (
+            <button
+              onClick={endInterview}
+              disabled={ending}
+              className="btn btn-success"
+              style={{ flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+            >
+              {ending ? "Finishing…" : (
+                <>
+                  <CheckCircleIcon size={16} />
+                  <span>Finish interview</span>
+                </>
+              )}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -80,13 +80,24 @@ app.use((err, _req, res, _next) => {
 });
 
 
+process.on("unhandledRejection", (err) => {
+  console.error("❌ Unhandled Rejection:", err);
+});
+process.on("uncaughtException", (err) => {
+  console.error("❌ Uncaught Exception:", err);
+});
+
+mongoose.connection.on("error", (err) => {
+  console.error("❌ MongoDB error:", err.message);
+});
+mongoose.connection.on("disconnected", () => {
+  console.warn("⚠ MongoDB disconnected");
+});
+
 const PORT = process.env.PORT || 5000;
 
 mongoose
-  .connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(process.env.MONGODB_URI)
   .then(() => {
     console.log("✅ MongoDB connected");
     httpServer.listen(PORT, () => {
